@@ -9,42 +9,18 @@ from rest_framework.decorators import permission_classes
 # content type to the client
 
 @permission_classes((permissions.AllowAny, ))
-class SnippetList(mixins.ListModelMixin,
-                  mixins.CreateModelMixin,
-                  generics.GenericAPIView):
+class SnippetList(generics.ListCreateAPIView):
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
 
-    def get(self, request, *args, **kwargs):
-        """
-        List all code snippets, or create a new Snippet.
-        """
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        # snippet serializer accepts python instance
-        return self.create(request, *args, **kwarg)
-
 
 @permission_classes((permissions.AllowAny,))
-class SnippetDetail(mixins.RetrieveModelMixin,
-                    mixins.UpdateModelMixin,
-                    mixins.DestroyModelMixin,
-                    generics.GenericAPIView):
+class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     Retrieve, update or delete a code snippet.
     """
     queryset =Snippet.objects.all()
     serializer_class = SnippetSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(self, request, *args, **kwargs)
-
-    def put(self, request,*args,**kwargs):
-        return self.update(self,request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(self, request, *args,**kwargs)
 
 
 @permission_classes((permissions.AllowAny, ))
