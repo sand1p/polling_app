@@ -1,61 +1,50 @@
 from snippets.models import Snippet
 from snippets.serializers import SnippetSerializer
-from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
+from rest_framework import mixins
+from rest_framework import generics
 from rest_framework import permissions
-from rest_framework.views import APIView
+from rest_framework.decorators import permission_classes
 # Create your views here.
 # Response takes unrendered content and uses content negotiation to determine correct
 # content type to the client
 
 @permission_classes((permissions.AllowAny, ))
-class SnippetList(APIView):
-    def get(request, format=None):
+class SnippetList(mixins.ListModelMixin,
+                  mixins.CreateModelMixin,
+                  generics.GenericAPIView):
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+
+    def get(self, request, *args, **kwargs):
         """
         List all code snippets, or create a new Snippet.
         """
-        snippets = Snippet.objects.all()
-        serializer = SnippetSerializer(snippets, many=True)
-        return Response(serializer.data)
+        return self.list(request, *args, **kwargs)
 
-    def post(request, format=None):
+    def post(self, request, *args, **kwargs):
         # snippet serializer accepts python instance
-        serializer = SnippetSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return self.create(request, *args, **kwarg)
 
 
 @permission_classes((permissions.AllowAny,))
-class SnippetDetail(APIView):
+class SnippetDetail(mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.DestroyModelMixin,
+                    generics.GenericAPIView):
     """
     Retrieve, update or delete a code snippet.
     """
-    def get_object(self, pk):
-        try:
-            snippet = Snippet.objects.get(pk=pk)
-        except Snippet.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+    queryset =Snippet.objects.all()
+    serializer_class = SnippetSerializer
 
-    def get(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        serializer = SnippetSerializer(snippet)
-        return Response(serializer.data)
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(self, request, *args, **kwargs)
 
-    def put(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        serializer = SnippetSerializer(snippet, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request,*args,**kwargs):
+        return self.update(self,request, *args, **kwargs)
 
-    def delete(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        snippet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(self, request, *args,**kwargs)
 
 
 @permission_classes((permissions.AllowAny, ))
